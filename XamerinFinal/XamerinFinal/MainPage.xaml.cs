@@ -27,6 +27,11 @@ namespace XamerinFinal
 			InitializeComponent();
 		}
 
+        private async void InitMedia()
+        {
+            await CrossMedia.Current.Initialize();
+        }
+
         private async Task<AnalysisResult> GetImageDescription(Stream imageStream)
         {
             // Get a connection to the Vision API
@@ -166,9 +171,6 @@ namespace XamerinFinal
 
         private async void ImageButton_Clicked(object sender, EventArgs e)
         {
-            // Wait for the file selector to load
-            await CrossMedia.Current.Initialize();
-
             // if files can be loaded then continue
             if (CrossMedia.Current.IsPickPhotoSupported)
             {
@@ -202,7 +204,14 @@ namespace XamerinFinal
                 cameraStatus = results[Permission.Camera];
                 storageStatus = results[Permission.Storage];
             }
-            
+
+
+            if (!CrossMedia.Current.IsCameraAvailable || !CrossMedia.Current.IsTakePhotoSupported)
+            {
+                await DisplayAlert("No Camera", "No camera available.", "OK");
+                return;
+            }
+
             // If we have permission, then we can continue capturing an image
             if (cameraStatus == PermissionStatus.Granted && storageStatus == PermissionStatus.Granted)
             {
@@ -219,12 +228,13 @@ namespace XamerinFinal
                 theImage.Source = ImageSource.FromStream(() =>
                 {
                     var stream = file.GetStream();
-                    file.Dispose();
                     return stream;
                 });
 
                 // Read the image
                 GetImageDataFromFile(file);
+
+                file.Dispose();
             }
             else
             {
