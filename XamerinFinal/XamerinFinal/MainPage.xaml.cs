@@ -205,10 +205,15 @@ namespace XamerinFinal
                 storageStatus = results[Permission.Storage];
             }
 
-
-            if (!CrossMedia.Current.IsCameraAvailable || !CrossMedia.Current.IsTakePhotoSupported)
+            if (!CrossMedia.Current.IsCameraAvailable)
             {
                 await DisplayAlert("No Camera", "No camera available.", "OK");
+                return;
+            }
+
+            if (!CrossMedia.Current.IsTakePhotoSupported)
+            {
+                await DisplayAlert("Take Photo Not Supported", "Can't Take a photo.", "OK");
                 return;
             }
 
@@ -224,17 +229,24 @@ namespace XamerinFinal
                     SaveToAlbum = true
                 });
 
-                // Place the image inside the image container
-                theImage.Source = ImageSource.FromStream(() =>
+                if (file != null)
                 {
-                    var stream = file.GetStream();
-                    return stream;
-                });
+                    // Place the image inside the image container
+                    theImage.Source = ImageSource.FromStream(() =>
+                    {
+                        var stream = file.GetStream();
+                        return stream;
+                    });
 
-                // Read the image
-                GetImageDataFromFile(file);
+                    // Read the image
+                    GetImageDataFromFile(file);
 
-                file.Dispose();
+                    file.Dispose();
+                } else
+                {
+                    await DisplayAlert("Image Empty", "Failed to take an image.", "OK");
+                    return;
+                }
             }
             else
             {
